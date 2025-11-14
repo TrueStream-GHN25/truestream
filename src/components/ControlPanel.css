@@ -1,0 +1,86 @@
+.control-panel {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+  background: rgba(10, 10, 10, 0.8);
+  border: 2px solid #00ffff;
+  border-radius: 8px;
+  padding: 20px;
+  min-width: 250px;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+}
+
+.panel-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel-section {
+  border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+  padding-bottom: 15px;
+}
+
+.panel-section:last-child {
+  border-bottom: none;
+}
+
+.panel-section h3 {
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: #00ffff;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.play-pause-btn {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  border: 2px solid #00ffff;
+  color: #00ffff;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.play-pause-btn:hover {
+  background: #00ffff;
+  color: #0a0a0a;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+.play-pause-btn:active {
+  transform: translateY(0);
+}
+
+.track-name {
+  color: #ff00ff;
+  font-size: 14px;
+  margin-bottom: 5px;
+  word-break: break-word;
+}
+
+.track-size {
+  color: #888;
+  font-size: 12px;
+}
+
+.info-text {
+  color: #00ffff;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.info-text p {
+  margin: 5px 0;
+}
+

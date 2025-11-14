@@ -1,0 +1,161 @@
+.music-uploader {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  z-index: 100;
+  background: rgba(10, 10, 10, 0.8);
+  border: 2px solid #ff00ff;
+  border-radius: 8px;
+  padding: 20px;
+  min-width: 400px;
+  max-width: 500px;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+}
+
+.uploader-header h2 {
+  font-size: 14px;
+  letter-spacing: 3px;
+  color: #ff00ff;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.upload-tabs {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 0, 255, 0.2);
+}
+
+.tab {
+  flex: 1;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #888;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.tab:hover {
+  color: #ff00ff;
+}
+
+.tab.active {
+  color: #ff00ff;
+  border-bottom-color: #ff00ff;
+}
+
+.upload-content {
+  min-height: 150px;
+}
+
+.upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.file-input-label {
+  display: block;
+  cursor: pointer;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-input-text {
+  display: block;
+  padding: 15px;
+  background: transparent;
+  border: 2px dashed #ff00ff;
+  color: #ff00ff;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.file-input-label:hover .file-input-text {
+  background: rgba(255, 0, 255, 0.1);
+  border-color: #ff00ff;
+  box-shadow: 0 0 15px rgba(255, 0, 255, 0.3);
+}
+
+.strudel-input,
+.url-input {
+  width: 100%;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid #ff00ff;
+  color: #00ffff;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  resize: vertical;
+  outline: none;
+}
+
+.strudel-input:focus,
+.url-input:focus {
+  border-color: #00ffff;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+}
+
+.url-input {
+  resize: none;
+}
+
+.submit-btn {
+  padding: 12px;
+  background: transparent;
+  border: 2px solid #ff00ff;
+  color: #ff00ff;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: #ff00ff;
+  color: #0a0a0a;
+  box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+}
+
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.upload-hint {
+  color: #888;
+  font-size: 11px;
+  line-height: 1.6;
+  margin-top: 5px;
+}
+
+.upload-hint a {
+  color: #00ffff;
+  text-decoration: none;
+}
+
+.upload-hint a:hover {
+  text-decoration: underline;
+}
+
