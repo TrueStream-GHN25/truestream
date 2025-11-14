@@ -16,10 +16,16 @@ function MusicUploader({ onFileUpload, onStrudelLoad }) {
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0]
-    if (file && file.type.startsWith('audio/')) {
+    if (file && (file.type.startsWith('audio/') || file.type.startsWith('video/'))) {
       onFileUpload(file)
       // Track asynchronously - don't block file upload
-      trackExperiment('file_upload', { filename: file.name, size: file.size }).catch(() => {})
+      trackExperiment('file_upload', { 
+        filename: file.name, 
+        size: file.size,
+        type: file.type 
+      }).catch(() => {})
+    } else if (file) {
+      alert('Please select an audio or video file (MP3, WAV, OGG, MP4, etc.)')
     }
   }
 
@@ -44,19 +50,27 @@ function MusicUploader({ onFileUpload, onStrudelLoad }) {
     
     setIsProcessing(true)
     try {
-      // Fetch audio from URL
+      // Fetch audio/video from URL
       const response = await fetch(songUrl)
+      const contentType = response.headers.get('content-type') || ''
       const blob = await response.blob()
-      const file = new File([blob], 'audio.mp3', { type: 'audio/mpeg' })
+      
+      // Detect file type from content-type header or blob type
+      const detectedType = contentType || blob.type || ''
+      const isVideo = detectedType.startsWith('video/') || songUrl.match(/\.(mp4|mov|avi|webm|mkv)/i)
+      const extension = isVideo ? 'mp4' : 'mp3'
+      const mimeType = detectedType || (isVideo ? 'video/mp4' : 'audio/mpeg')
+      
+      const file = new File([blob], `media.${extension}`, { type: mimeType })
       
       // Process with Friendli if needed (non-blocking)
       processAudio(blob).catch(() => {})
       
       onFileUpload(file)
-      trackExperiment('url_load', { url: songUrl }).catch(() => {})
+      trackExperiment('url_load', { url: songUrl, type: contentType }).catch(() => {})
     } catch (error) {
-      console.error('Error loading audio from URL:', error)
-      alert('Failed to load audio from URL. Please check the link.')
+      console.error('Error loading media from URL:', error)
+      alert('Failed to load media from URL. Please check the link and ensure CORS is enabled.')
     } finally {
       setIsProcessing(false)
     }
@@ -95,16 +109,16 @@ function MusicUploader({ onFileUpload, onStrudelLoad }) {
             <label className="file-input-label">
               <input
                 type="file"
-                accept="audio/*"
+                accept="audio/*,video/*"
                 onChange={handleFileSelect}
                 className="file-input"
               />
               <span className="file-input-text">
-                {isProcessing ? 'PROCESSING...' : 'CHOOSE AUDIO FILE'}
+                {isProcessing ? 'PROCESSING...' : 'CHOOSE AUDIO/VIDEO FILE'}
               </span>
             </label>
             <p className="upload-hint">
-              Supports MP3, WAV, OGG, and other audio formats
+              Supports MP3, WAV, OGG, MP4, MOV, AVI, and other audio/video formats
             </p>
           </div>
         )}
@@ -152,7 +166,7 @@ function MusicUploader({ onFileUpload, onStrudelLoad }) {
               {isProcessing ? 'LOADING...' : 'LOAD FROM URL'}
             </button>
             <p className="upload-hint">
-              Enter a direct link to an audio file
+              Enter a direct link to an audio or video file (MP3, WAV, MP4, etc.)
             </p>
           </div>
         )}

@@ -17,6 +17,20 @@ function App() {
 
   const handleFileUpload = (file) => {
     if (file) {
+      // Clean up previous media element if it exists
+      if (audioRef.current) {
+        const prevElement = audioRef.current
+        if (prevElement.parentNode && prevElement.tagName === 'VIDEO') {
+          prevElement.pause()
+          prevElement.src = ''
+          prevElement.parentNode.removeChild(prevElement)
+        }
+        // Revoke previous URL if it exists
+        if (audioUrl) {
+          URL.revokeObjectURL(audioUrl)
+        }
+      }
+      
       setAudioFile(file)
       const url = URL.createObjectURL(file)
       setAudioUrl(url)
@@ -26,11 +40,26 @@ function App() {
       const analyserNode = ctx.createAnalyser()
       analyserNode.fftSize = 256
       
-      const audio = new Audio(url)
-      audioRef.current = audio
+      // Use video element for video files, audio element for audio files
+      // Both can be used with Web Audio API
+      const isVideo = file.type.startsWith('video/')
+      const mediaElement = isVideo 
+        ? document.createElement('video')
+        : document.createElement('audio')
+      
+      mediaElement.src = url
+      mediaElement.crossOrigin = 'anonymous'
+      
+      // For video files, hide the video element (we only want audio)
+      if (isVideo) {
+        mediaElement.style.display = 'none'
+        document.body.appendChild(mediaElement)
+      }
+      
+      audioRef.current = mediaElement
       
       // Create media source
-      const source = ctx.createMediaElementSource(audio)
+      const source = ctx.createMediaElementSource(mediaElement)
       source.connect(analyserNode)
       analyserNode.connect(ctx.destination)
       sourceRef.current = source
@@ -48,7 +77,7 @@ function App() {
         animationFrameId = requestAnimationFrame(updateData)
       }
       
-      audio.addEventListener('play', () => {
+      mediaElement.addEventListener('play', () => {
         setIsPlaying(true)
         if (ctx.state === 'suspended') {
           ctx.resume()
@@ -56,18 +85,28 @@ function App() {
         updateData()
       })
       
-      audio.addEventListener('pause', () => {
+      mediaElement.addEventListener('pause', () => {
         setIsPlaying(false)
         if (animationFrameId) {
           cancelAnimationFrame(animationFrameId)
         }
       })
       
-      audio.addEventListener('ended', () => {
+      mediaElement.addEventListener('ended', () => {
         setIsPlaying(false)
         if (animationFrameId) {
           cancelAnimationFrame(animationFrameId)
         }
+        // Clean up video element if it was added to DOM
+        if (isVideo && mediaElement.parentNode) {
+          mediaElement.parentNode.removeChild(mediaElement)
+        }
+      })
+      
+      // Handle errors
+      mediaElement.addEventListener('error', (e) => {
+        console.error('Media loading error:', e)
+        alert('Error loading file. Please ensure it\'s a valid audio or video file.')
       })
     }
   }
