@@ -38,16 +38,20 @@ function SynthwaveVisualizer({ audioData, isPlaying }) {
     const vertices = []
     const segments = 100
     
+    // Create base point at center
+    vertices.push(0, 0, -30)
+    
+    // Create mountain outline
     for (let i = 0; i <= segments; i++) {
       const x = (i / segments) * 100 - 50
       const y = Math.sin(x * 0.1) * 5 + Math.random() * 2
       vertices.push(x, y, -30)
     }
     
-    // Create triangles for mountain shape
+    // Create triangles for mountain shape (triangle fan from center)
     const indices = []
-    for (let i = 0; i < segments; i++) {
-      indices.push(0, i, i + 1) // Connect to origin for triangle fan
+    for (let i = 1; i < segments + 1; i++) {
+      indices.push(0, i, i + 1)
     }
     
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3))
@@ -106,37 +110,48 @@ function SynthwaveVisualizer({ audioData, isPlaying }) {
     if (audioData && barsRef.current.length > 0) {
       const barCount = bars.length
       barsRef.current.forEach((bar, index) => {
-        if (bar) {
+        if (bar && bar.material) {
           const dataIndex = Math.floor((index / barCount) * audioData.length)
-          const amplitude = audioData[dataIndex] / 255
-          const scale = 0.1 + amplitude * 2
+          const amplitude = Math.min(audioData[dataIndex] / 255, 1)
+          const scale = Math.max(0.1, 0.1 + amplitude * 2)
           bar.scale.y = scale
           bar.position.y = -4 + scale / 2
           
-          // Color based on amplitude
-          const color = new THREE.Color()
-          color.setHSL(0.5 + amplitude * 0.3, 1, 0.5 + amplitude * 0.5)
-          bar.material.color = color
+          // Color based on amplitude (reuse color object for performance)
+          if (!bar._color) {
+            bar._color = new THREE.Color()
+          }
+          bar._color.setHSL(0.5 + amplitude * 0.3, 1, 0.5 + amplitude * 0.5)
+          bar.material.color.copy(bar._color)
         }
       })
     }
     
     // Particles - audio reactive
-    if (particlesRef.current && audioData) {
+    if (particlesRef.current) {
       particlesRef.current.rotation.y += 0.001
       particlesRef.current.rotation.x += 0.0005
       
-      // Make particles react to audio
-      const positions = particlesRef.current.geometry.attributes.position.array
-      const avgAmplitude = audioData.reduce((a, b) => a + b, 0) / audioData.length / 255
-      
-      for (let i = 0; i < positions.length; i += 3) {
-        positions[i + 1] += Math.sin(time + i) * avgAmplitude * 0.01
+      // Make particles react to audio (only update if audio is playing)
+      if (audioData && isPlaying) {
+        const positions = particlesRef.current.geometry.attributes.position.array
+        const avgAmplitude = Math.min(
+          audioData.reduce((a, b) => a + b, 0) / audioData.length / 255,
+          1
+        )
+        
+        // Store original positions if not already stored
+        if (!particlesRef.current._originalPositions) {
+          particlesRef.current._originalPositions = new Float32Array(positions)
+        }
+        
+        const originalPos = particlesRef.current._originalPositions
+        for (let i = 0; i < positions.length; i += 3) {
+          // Reset to original position with audio modulation
+          positions[i + 1] = originalPos[i + 1] + Math.sin(time + i * 0.01) * avgAmplitude * 2
+        }
+        particlesRef.current.geometry.attributes.position.needsUpdate = true
       }
-      particlesRef.current.geometry.attributes.position.needsUpdate = true
-    } else if (particlesRef.current) {
-      particlesRef.current.rotation.y += 0.001
-      particlesRef.current.rotation.x += 0.0005
     }
   })
 

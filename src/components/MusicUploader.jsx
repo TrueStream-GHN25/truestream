@@ -48,12 +48,34 @@ function MusicUploader({ onFileUpload, onStrudelLoad }) {
   const handleUrlSubmit = async () => {
     if (!songUrl) return
     
+    // Basic URL validation
+    try {
+      new URL(songUrl)
+    } catch {
+      alert('Please enter a valid URL')
+      return
+    }
+    
     setIsProcessing(true)
     try {
       // Fetch audio/video from URL
-      const response = await fetch(songUrl)
+      const response = await fetch(songUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'audio/*,video/*'
+        }
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
       const contentType = response.headers.get('content-type') || ''
       const blob = await response.blob()
+      
+      if (blob.size === 0) {
+        throw new Error('File is empty')
+      }
       
       // Detect file type from content-type header or blob type
       const detectedType = contentType || blob.type || ''
@@ -70,7 +92,15 @@ function MusicUploader({ onFileUpload, onStrudelLoad }) {
       trackExperiment('url_load', { url: songUrl, type: contentType }).catch(() => {})
     } catch (error) {
       console.error('Error loading media from URL:', error)
-      alert('Failed to load media from URL. Please check the link and ensure CORS is enabled.')
+      let errorMessage = 'Failed to load media from URL.'
+      if (error.message.includes('CORS')) {
+        errorMessage += ' CORS may not be enabled on the server.'
+      } else if (error.message.includes('HTTP error')) {
+        errorMessage += ` Server returned error: ${error.message}`
+      } else {
+        errorMessage += ` ${error.message}`
+      }
+      alert(errorMessage)
     } finally {
       setIsProcessing(false)
     }

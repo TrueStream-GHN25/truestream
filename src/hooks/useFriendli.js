@@ -55,6 +55,10 @@ export function useFriendli() {
   const analyzeAudioFeatures = async (audioBlob) => {
     // Use Friendli AI to analyze audio features
     // This could extract BPM, key, genre, etc.
+    if (!FRIENDLI_API_KEY) {
+      return null
+    }
+    
     try {
       const formData = new FormData()
       formData.append('audio', audioBlob)
@@ -71,7 +75,7 @@ export function useFriendli() {
       
       return response.data
     } catch (err) {
-      console.error('Friendli analysis error:', err)
+      console.warn('Friendli analysis error (non-critical):', err.message)
       return null
     }
   }
@@ -79,6 +83,10 @@ export function useFriendli() {
   const generateVisualizationParams = async (audioFeatures) => {
     // Use Friendli AI to generate visualization parameters
     // based on audio features
+    if (!FRIENDLI_API_KEY) {
+      return null
+    }
+    
     try {
       const response = await axios.post(
         `${FRIENDLI_API_URL}/visualization/generate`,
@@ -93,7 +101,7 @@ export function useFriendli() {
       
       return response.data
     } catch (err) {
-      console.error('Friendli visualization generation error:', err)
+      console.warn('Friendli visualization generation error (non-critical):', err.message)
       return null
     }
   }
