@@ -17,8 +17,10 @@ function App() {
   const audioRef = useRef(null)
   const sourceRef = useRef(null)
   const animationFrameIdRef = useRef(null)
+  const audioContextRef = useRef(null)
+  const audioUrlRef = useRef(null)
   
-  // Cleanup on unmount
+  // Cleanup on unmount only
   useEffect(() => {
     return () => {
       // Cancel animation frame
@@ -56,16 +58,18 @@ function App() {
       }
       
       // Close audio context
-      if (audioContext) {
-        audioContext.close().catch(() => {})
+      if (audioContextRef.current) {
+        audioContextRef.current.close().catch(() => {})
+        audioContextRef.current = null
       }
       
       // Revoke object URL
-      if (audioUrl) {
-        URL.revokeObjectURL(audioUrl)
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current)
+        audioUrlRef.current = null
       }
     }
-  }, [audioContext, audioUrl])
+  }, [])
 
   const handleFileUpload = (file) => {
     if (!file) return
@@ -107,18 +111,21 @@ function App() {
       }
       
       // Close previous audio context
-      if (audioContext) {
-        audioContext.close().catch(() => {})
+      if (audioContextRef.current) {
+        audioContextRef.current.close().catch(() => {})
+        audioContextRef.current = null
       }
       
       // Revoke previous object URL
-      if (audioUrl) {
-        URL.revokeObjectURL(audioUrl)
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current)
+        audioUrlRef.current = null
       }
       
       setAudioFile(file)
       const url = URL.createObjectURL(file)
       setAudioUrl(url)
+      audioUrlRef.current = url
       
       // Initialize audio context and analyser
       const ctx = new (window.AudioContext || window.webkitAudioContext)()
@@ -154,15 +161,20 @@ function App() {
       
       setAudioContext(ctx)
       setAnalyser(analyserNode)
+      audioContextRef.current = ctx
       
       // Update audio data
       const dataArray = new Uint8Array(analyserNode.frequencyBinCount)
+      let isUpdating = false
       
       const updateData = () => {
-        if (analyserNode && isPlaying) {
+        if (analyserNode && mediaElement && !mediaElement.paused) {
           analyserNode.getByteFrequencyData(dataArray)
           setAudioData(new Uint8Array(dataArray))
           animationFrameIdRef.current = requestAnimationFrame(updateData)
+          isUpdating = true
+        } else {
+          isUpdating = false
         }
       }
       
@@ -171,7 +183,9 @@ function App() {
         if (ctx.state === 'suspended') {
           ctx.resume()
         }
-        updateData()
+        if (!isUpdating) {
+          updateData()
+        }
       }
       
       const handlePause = () => {
